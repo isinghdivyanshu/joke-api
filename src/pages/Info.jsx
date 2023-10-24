@@ -21,7 +21,7 @@ function NavCat({ name, url, dataName }) {
 			}
 		};
 		fetchData();
-	}, []);
+	}, [name, url, dataName]);
 
 	//using .then
 	// useEffect(() => {
@@ -53,9 +53,9 @@ export default function Info() {
 		<div className="max-w-5xl mx-auto p-4">
 			<h1 className="font-bold text-3xl text-center">Jokes API</h1>
 			<div className="flex justify-between my-6">
-				<NavCat name="Joke Categories" url="categories" dataName="" />
-				<NavCat name="Blacklist Flags" url="flags" dataName="" />
-				<NavCat name="Response Formats" url="formats" dataName="" />
+				<NavCat name="Joke Categories" url="categories" />
+				<NavCat name="Blacklist Flags" url="flags" />
+				<NavCat name="Response Formats" url="formats" />
 				<NavCat
 					name="Joke Languages"
 					url="languages"
@@ -75,5 +75,5 @@ export default function Info() {
 NavCat.propTypes = {
 	name: PropTypes.string.isRequired,
 	url: PropTypes.string.isRequired,
-	dataName: PropTypes.string.isRequired,
+	dataName: PropTypes.string,
 };

@@ -1,6 +1,6 @@
 import axios from "../axios";
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Input from "../components/Input";
 import GetURL from "../components/GetURL";
 
@@ -13,38 +13,32 @@ export default function Joke() {
 	const [selectedTypes, setSelectedTypes] = useState(["single", "twopart"]);
 	const [selectedAmount, setSelectedAmount] = useState("1");
 	const [URL, setURL] = useState("https://v2.jokeapi.dev/joke/Any?");
-	const [joke, setJoke] = useState("");
+	const [joke, setJoke] = useState(
+		"Select your choice then click the button below."
+	);
 
-	useEffect(() => {
-		setTimeout(() => {
-			const getJoke = async () => {
-				let jokes;
-				let res;
-				try {
-					res = await axios.get(URL);
-					console.log(res.data);
-					if (
-						res.data.error === false &&
-						res.data.type === "single"
-					) {
-						jokes = res.data.joke;
-					} else if (
-						res.data.error === false &&
-						res.data.type === "twopart"
-					) {
-						jokes = `${res.data.setup} ${res.data.delivery}`;
-					} else {
-						throw new Error(`Error: ${res.message}`);
-					}
-					setJoke(jokes);
-				} catch (err) {
-					const error = res.data.message;
-					setJoke(error);
-				}
-			};
-			getJoke();
-		}, 500);
-	}, [URL]);
+	async function handleFetchJoke() {
+		let jokes;
+		let res;
+		try {
+			res = await axios.get(URL);
+			console.log(res.data);
+			if (res.data.error === false && res.data.type === "single") {
+				jokes = res.data.joke;
+			} else if (
+				res.data.error === false &&
+				res.data.type === "twopart"
+			) {
+				jokes = `${res.data.setup} ${res.data.delivery}`;
+			} else {
+				throw new Error(`Error: ${res.message}`);
+			}
+			setJoke(jokes);
+		} catch (err) {
+			const error = res.data.message;
+			setJoke(error);
+		}
+	}
 
 	return (
 		<div className="w-full mx-auto p-5">
@@ -59,7 +53,7 @@ export default function Joke() {
 				Generate a Joke
 			</h1>
 			<div className="flex gap-5">
-				<div className="bg-gray-200 w-fit inline-block p-2 rounded-lg border-2 border-black">
+				<div className="bg-gray-200 max-w-fit inline-block p-2 rounded-lg border-2 border-black">
 					<div className="font-medium text-lg">
 						Select Category/Categories:
 					</div>
@@ -301,7 +295,7 @@ export default function Joke() {
 						/>
 					</div>
 				</div>
-				<div className="bg-gray-200 grow inline-block p-2 rounded-lg border-2 border-black">
+				<div className="bg-gray-200 grow inline-block p-5 rounded-lg border-2 border-black text-lg font-medium text-pink-900">
 					<GetURL
 						selectedAnyRadio={selectedAnyRadio}
 						selectedCategories={selectedCategories}
@@ -313,6 +307,12 @@ export default function Joke() {
 						setURL={setURL}
 					/>
 					{joke}
+					<button
+						onClick={handleFetchJoke}
+						className="block py-2 px-4 my-11 mx-auto border border-blue-500 rounded-lg text-black text-base font-normal hover:bg-blue-500 hover:text-white"
+					>
+						Generate New Joke
+					</button>
 				</div>
 			</div>
 		</div>

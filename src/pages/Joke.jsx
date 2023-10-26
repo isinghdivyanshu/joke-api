@@ -1,57 +1,50 @@
+import axios from "../axios";
 import { Link } from "react-router-dom";
-import { useState } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect } from "react";
+import Input from "../components/Input";
+import GetURL from "../components/GetURL";
 
 export default function Joke() {
-	const [selectedRadio, setSelectedRadio] = useState("Any");
+	const [selectedAnyRadio, setSelectedAnyRadio] = useState(true);
+	const [selectedCategories, setSelectedCategories] = useState([]);
+	const [selectedLanguage, setSelectedLanguage] = useState("en");
+	const [selectedFlags, setSelectedFlags] = useState([]);
+	const [selectedFormat, setSelectedFormat] = useState("json (default)");
+	const [selectedTypes, setSelectedTypes] = useState(["single", "twopart"]);
+	const [selectedAmount, setSelectedAmount] = useState("1");
+	const [URL, setURL] = useState("https://v2.jokeapi.dev/joke/Any?");
+	const [joke, setJoke] = useState("");
 
-	function handleRadioChange(e) {
-		setSelectedRadio(e.target.id);
-	}
-
-	function Input({
-		id,
-		name,
-		type,
-		onChange,
-		checked,
-		disabled,
-		classNameLabel,
-		classNameInput,
-	}) {
-		return (
-			<label
-				htmlFor={id}
-				className={`select-none ${classNameLabel} ${
-					selectedRadio === "Any" && name === "check"
-						? "text-gray-500"
-						: ""
-				}`}
-			>
-				<input
-					id={id}
-					name={name}
-					type={type}
-					onChange={onChange}
-					checked={checked}
-					disabled={disabled}
-					className={classNameInput}
-				/>
-				{id}
-			</label>
-		);
-	}
-
-	Input.propTypes = {
-		id: PropTypes.string.isRequired,
-		name: PropTypes.string,
-		type: PropTypes.string.isRequired,
-		onChange: PropTypes.func,
-		checked: PropTypes.bool,
-		disabled: PropTypes.bool,
-		classNameLabel: PropTypes.string,
-		classNameInput: PropTypes.string,
-	};
+	useEffect(() => {
+		setTimeout(() => {
+			const getJoke = async () => {
+				let jokes;
+				let res;
+				try {
+					res = await axios.get(URL);
+					console.log(res.data);
+					if (
+						res.data.error === false &&
+						res.data.type === "single"
+					) {
+						jokes = res.data.joke;
+					} else if (
+						res.data.error === false &&
+						res.data.type === "twopart"
+					) {
+						jokes = `${res.data.setup} ${res.data.delivery}`;
+					} else {
+						throw new Error(`Error: ${res.message}`);
+					}
+					setJoke(jokes);
+				} catch (err) {
+					const error = res.data.message;
+					setJoke(error);
+				}
+			};
+			getJoke();
+		}, 500);
+	}, [URL]);
 
 	return (
 		<div className="w-full mx-auto p-5">
@@ -75,33 +68,40 @@ export default function Joke() {
 							type="radio"
 							id="Any"
 							onChange={handleRadioChange}
-							checked={selectedRadio === "Any"}
+							checked={selectedAnyRadio}
 							classNameLabel="block"
 							classNameInput="m-2"
+							selectedAnyRadio={selectedAnyRadio}
 						/>
 						<Input
 							type="radio"
 							id="Custom"
 							onChange={handleRadioChange}
-							checked={selectedRadio !== "Any"}
+							checked={!selectedAnyRadio}
 							classNameLabel=""
 							classNameInput="m-2"
+							selectedAnyRadio={selectedAnyRadio}
 						/>
 						{":"}
 						<Input
 							id="Programming"
 							name="check"
 							type="checkbox"
-							disabled={selectedRadio === "Any"}
-							state={selectedRadio}
+							onChange={handleCategoriesChange}
+							checked={selectedCategories.includes("Programming")}
+							disabled={selectedAnyRadio}
 							classNameLabel="ml-10"
 							classNameInput="mx-1"
+							selectedAnyRadio={selectedAnyRadio}
 						/>
 						<Input
 							id="Misc"
 							name="check"
 							type="checkbox"
-							disabled={selectedRadio === "Any"}
+							onChange={handleCategoriesChange}
+							checked={selectedCategories.includes("Misc")}
+							disabled={selectedAnyRadio}
+							selectedAnyRadio={selectedAnyRadio}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -109,7 +109,10 @@ export default function Joke() {
 							id="Dark"
 							name="check"
 							type="checkbox"
-							disabled={selectedRadio === "Any"}
+							onChange={handleCategoriesChange}
+							checked={selectedCategories.includes("Dark")}
+							disabled={selectedAnyRadio}
+							selectedAnyRadio={selectedAnyRadio}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -117,7 +120,10 @@ export default function Joke() {
 							id="Pun"
 							name="check"
 							type="checkbox"
-							disabled={selectedRadio === "Any"}
+							onChange={handleCategoriesChange}
+							checked={selectedCategories.includes("Pun")}
+							disabled={selectedAnyRadio}
+							selectedAnyRadio={selectedAnyRadio}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -125,7 +131,10 @@ export default function Joke() {
 							id="Spooky"
 							name="check"
 							type="checkbox"
-							disabled={selectedRadio === "Any"}
+							onChange={handleCategoriesChange}
+							checked={selectedCategories.includes("Spooky")}
+							disabled={selectedAnyRadio}
+							selectedAnyRadio={selectedAnyRadio}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -133,18 +142,24 @@ export default function Joke() {
 							id="Christmas"
 							name="check"
 							type="checkbox"
-							disabled={selectedRadio === "Any"}
+							onChange={handleCategoriesChange}
+							checked={selectedCategories.includes("Christmas")}
+							disabled={selectedAnyRadio}
+							selectedAnyRadio={selectedAnyRadio}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 					</div>
 					<div className="font-medium text-lg">Select Language:</div>
 					<div className="rounded-lg border-2 border-gray-400 p-2 my-2">
-						<select id="lang" className="rounded-md p-2">
+						<select
+							id="lang"
+							value={selectedLanguage}
+							className="rounded-md p-2"
+							onChange={handleLanguageChange}
+						>
 							<option value="cs">Czech</option>
-							<option value="en" selected>
-								English
-							</option>
+							<option value="en">English</option>
 							<option value="fr">French</option>
 							<option value="de">German</option>
 							<option value="pt">Portuguese</option>
@@ -159,36 +174,48 @@ export default function Joke() {
 						<Input
 							id="nsfw"
 							type="checkbox"
+							onChange={handleFlagsChange}
+							checked={selectedFlags.includes("nsfw")}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 						<Input
 							id="religious"
 							type="checkbox"
+							onChange={handleFlagsChange}
+							checked={selectedFlags.includes("religious")}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 						<Input
 							id="political"
 							type="checkbox"
+							onChange={handleFlagsChange}
+							checked={selectedFlags.includes("political")}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 						<Input
 							id="racist"
 							type="checkbox"
+							onChange={handleFlagsChange}
+							checked={selectedFlags.includes("racist")}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 						<Input
 							id="sexist"
 							type="checkbox"
+							onChange={handleFlagsChange}
+							checked={selectedFlags.includes("sexist")}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 						<Input
 							id="explicit"
 							type="checkbox"
+							onChange={handleFlagsChange}
+							checked={selectedFlags.includes("explicit")}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -198,9 +225,11 @@ export default function Joke() {
 					</div>
 					<div className="rounded-lg border-2 border-gray-400 p-2 my-2">
 						<Input
-							id="json(default)"
+							id="json (default)"
 							name="response"
 							type="radio"
+							onChange={handleFormatChange}
+							checked={selectedFormat === "json (default)"}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -208,6 +237,8 @@ export default function Joke() {
 							id="xml"
 							name="response"
 							type="radio"
+							onChange={handleFormatChange}
+							checked={selectedFormat === "xml"}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -215,6 +246,8 @@ export default function Joke() {
 							id="yaml"
 							name="response"
 							type="radio"
+							onChange={handleFormatChange}
+							checked={selectedFormat === "yaml"}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
@@ -222,39 +255,119 @@ export default function Joke() {
 							id="plaintext"
 							name="response"
 							type="radio"
+							onChange={handleFormatChange}
+							checked={selectedFormat === "plaintext"}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 					</div>
 					<div className="font-medium text-lg">
-						Select at least one Joke Type:
+						Select Joke Type{" "}
+						<span className="font-normal text-sm">
+							(at least 1)
+						</span>
+						:
 					</div>
 					<div className="rounded-lg border-2 border-gray-400 p-2 my-2">
 						<Input
 							id="single"
 							type="checkbox"
+							checked={selectedTypes.includes("single")}
+							onChange={handleTypesChange}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 						<Input
 							id="twopart"
 							type="checkbox"
+							checked={selectedTypes.includes("twopart")}
+							onChange={handleTypesChange}
 							classNameLabel="ml-4"
 							classNameInput="mx-1"
 						/>
 					</div>
-					<div className="font-medium text-lg">Amount of Jokes:</div>
+					<div className="font-medium text-lg">
+						Amount of Jokes{" "}
+						<span className="font-normal text-sm">(1 to 10):</span>
+					</div>
 					<div className="rounded-lg border-2 border-gray-400 p-2 my-2">
 						<input
+							id="amount"
 							type="number"
-							min="0"
+							min="1"
 							max="10"
-							defaultValue="1"
+							defaultValue={selectedAmount}
+							onChange={handleAmountChange}
 						/>
 					</div>
 				</div>
-				<div className="bg-gray-200 grow inline-block p-2 rounded-lg border-2 border-black"></div>
+				<div className="bg-gray-200 grow inline-block p-2 rounded-lg border-2 border-black">
+					<GetURL
+						selectedAnyRadio={selectedAnyRadio}
+						selectedCategories={selectedCategories}
+						selectedLanguage={selectedLanguage}
+						selectedFlags={selectedFlags}
+						selectedFormat={selectedFormat}
+						selectedTypes={selectedTypes}
+						selectedAmount={selectedAmount}
+						setURL={setURL}
+					/>
+					{joke}
+				</div>
 			</div>
 		</div>
 	);
+
+	function handleRadioChange(e) {
+		setSelectedAnyRadio(!selectedAnyRadio);
+		if (e.target.id === "Any") {
+			setSelectedCategories([]);
+		} else {
+			setSelectedCategories(["Programming"]);
+		}
+	}
+
+	function handleCategoriesChange(e) {
+		if (selectedCategories.includes(e.target.id)) {
+			setSelectedCategories((prevState) =>
+				prevState.filter((category) => category !== e.target.id)
+			);
+		} else {
+			setSelectedCategories((prevState) => [...prevState, e.target.id]);
+		}
+	}
+
+	function handleLanguageChange(e) {
+		setSelectedLanguage(e.target.value);
+	}
+
+	function handleFlagsChange(e) {
+		if (selectedFlags.includes(e.target.id)) {
+			setSelectedFlags((prevState) =>
+				prevState.filter((flag) => flag !== e.target.id)
+			);
+		} else {
+			setSelectedFlags((prevState) => [...prevState, e.target.id]);
+		}
+	}
+
+	function handleFormatChange(e) {
+		setSelectedFormat(e.target.id);
+	}
+
+	function handleTypesChange(e) {
+		if (selectedTypes.includes(e.target.id)) {
+			setSelectedTypes((prevState) => {
+				return prevState.filter((type) => type !== e.target.id);
+			});
+		} else {
+			setSelectedTypes((prevState) => {
+				return [...prevState, e.target.id];
+			});
+		}
+	}
+
+	function handleAmountChange(e) {
+		setSelectedAmount(e.target.value);
+	}
 }
